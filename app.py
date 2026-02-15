@@ -74,10 +74,31 @@ if uploaded is not None:
     class_names = list(le.classes_)
     n_classes = len(class_names)
 
-    try:
-        y = le.transform(y_raw)
-    except Exception:
-        y = pd.to_numeric(y_raw, errors="coerce").astype(int).to_numpy()
+y_raw = y_raw.astype(str).str.strip()
+y_raw = y_raw.replace({"": np.nan, "nan": np.nan, "None": np.nan})
+
+if y_raw.isna().any():
+    st.warning("Some label values are missing/blank. Running in prediction-only mode (no metrics).")
+
+    model = joblib.load(model_path)
+    preds = model.predict(X)
+
+    pred_labels = le.inverse_transform(preds)
+
+    out = X.copy()
+    out["Predicted_Class"] = pred_labels
+    st.subheader("Predictions")
+    st.dataframe(out.head(50))
+
+    st.download_button(
+        "Download predictions as CSV",
+        out.to_csv(index=False).encode("utf-8"),
+        file_name="predictions.csv",
+        mime="text/csv"
+    )
+    st.stop()
+
+y = le.transform(y_raw)
 
     model_path = os.path.join(MODEL_DIR, model_files[selected])
     if not os.path.exists(model_path):
