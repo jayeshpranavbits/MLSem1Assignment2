@@ -43,7 +43,10 @@ streamlit run app.py
 Observations:
 XGBoost achieved the highest macro F1-score and overall accuracy, demonstrating
 superior performance in handling multi-class classification tasks.
+
+
 ML Model Name	      | Accuracy	Precision	Recall	  F1	      MCC	       AUC
+--------------------------------------------------------------------------------
 Logistic Regression	| 0.921410	0.935383	0.932149	0.933538	0.905045	0.994776
 Decision Tree       |	0.892031	0.907513	0.909028	0.908061	0.869569	0.944996
 kNN		              | 0.916269  0.931763	0.926738	0.928868	0.898792	0.986807
