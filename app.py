@@ -59,6 +59,7 @@ if uploaded is not None:
     X = df.drop(columns=[target_col]).copy()
     y_raw = df[target_col].copy()
 
+    # Ensure numeric features
     X = X.apply(pd.to_numeric, errors="coerce")
     if X.isna().any().any():
         st.warning("Some feature values could not be parsed as numeric. Dropping rows with NaNs.")
@@ -74,32 +75,6 @@ if uploaded is not None:
     class_names = list(le.classes_)
     n_classes = len(class_names)
 
-y_raw = y_raw.astype(str).str.strip()
-y_raw = y_raw.replace({"": np.nan, "nan": np.nan, "None": np.nan})
-
-if y_raw.isna().any():
-    st.warning("Some label values are missing/blank. Running in prediction-only mode (no metrics).")
-
-    model = joblib.load(model_path)
-    preds = model.predict(X)
-
-    pred_labels = le.inverse_transform(preds)
-
-    out = X.copy()
-    out["Predicted_Class"] = pred_labels
-    st.subheader("Predictions")
-    st.dataframe(out.head(50))
-
-    st.download_button(
-        "Download predictions as CSV",
-        out.to_csv(index=False).encode("utf-8"),
-        file_name="predictions.csv",
-        mime="text/csv"
-    )
-    st.stop()
-
-y = le.transform(y_raw)
-
     model_path = os.path.join(MODEL_DIR, model_files[selected])
     if not os.path.exists(model_path):
         st.error(f"Model file not found: {model_path}. Ensure model/ folder is in your repo.")
@@ -107,20 +82,47 @@ y = le.transform(y_raw)
 
     model = joblib.load(model_path)
 
-    y_pred = model.predict(X)
-    y_proba = model.predict_proba(X) if hasattr(model, "predict_proba") else None
+    # Clean label column
+    y_raw = y_raw.astype(str).str.strip()
+    y_raw = y_raw.replace({"": np.nan, "nan": np.nan, "None": np.nan})
 
-    metrics = compute_metrics_multiclass(y, y_pred, y_proba, n_classes)
-    cm = confusion_matrix(y, y_pred)
+    # If labels missing → prediction mode
+    if y_raw.isna().any():
+        st.warning("Missing labels detected. Running in prediction-only mode.")
 
-    with col2:
-        st.subheader("Evaluation Metrics")
-        st.json(metrics)
+        preds = model.predict(X)
+        pred_labels = le.inverse_transform(preds)
 
-        st.subheader("Confusion Matrix")
-        st.write(cm)
+        output_df = X.copy()
+        output_df["Predicted_Class"] = pred_labels
 
-        st.subheader("Classification Report")
-        st.text(classification_report(y, y_pred, target_names=class_names, digits=4, zero_division=0))
+        st.subheader("Predictions")
+        st.dataframe(output_df.head(50))
+
+        st.download_button(
+            "Download predictions as CSV",
+            output_df.to_csv(index=False).encode("utf-8"),
+            file_name="predictions.csv",
+            mime="text/csv"
+        )
+    else:
+        # Evaluation mode
+        y = le.transform(y_raw)
+
+        y_pred = model.predict(X)
+        y_proba = model.predict_proba(X) if hasattr(model, "predict_proba") else None
+
+        metrics = compute_metrics_multiclass(y, y_pred, y_proba, n_classes)
+        cm = confusion_matrix(y, y_pred)
+
+        with col2:
+            st.subheader("Evaluation Metrics")
+            st.json(metrics)
+
+            st.subheader("Confusion Matrix")
+            st.write(cm)
+
+            st.subheader("Classification Report")
+            st.text(classification_report(y, y_pred, target_names=class_names, digits=4, zero_division=0))
 else:
     st.info("Upload a CSV to evaluate the selected model.")
