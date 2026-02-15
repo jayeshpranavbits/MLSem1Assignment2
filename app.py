@@ -1,4 +1,4 @@
-st.caption("Student: Jayesh Pranav - 2025AA05097 | Course: ML Semester 1 Assignment 2")
+
 
 import os
 import joblib
@@ -18,7 +18,7 @@ from sklearn.metrics import (
 st.set_page_config(page_title="Dry Bean ML Classifier", layout="wide")
 st.title("🌱 Dry Bean Classification Dashboard")
 st.caption("Multi-class classification (7 bean types) using 6 ML models with required evaluation metrics.")
-
+st.caption("Done by: Student: Jayesh Pranav - 2025AA05097 | Course: ML Semester 1 Assignment 2")
 st.markdown(
     """
 **Models:** Logistic Regression, Decision Tree, KNN, Gaussian Naive Bayes, Random Forest, XGBoost  
@@ -204,3 +204,4 @@ with st.expander("📌 Classification Report"):
 
 st.divider()
 st.caption("Made for academic submission: consistent model comparison, robust input handling, and required metrics reporting.")
+
